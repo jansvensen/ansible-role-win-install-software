@@ -1,17 +1,25 @@
 ---
-- name: Copy installation files to folder
-  ansible.windows.win_copy:
-    src: './files/software/{{ item }}'
-    dest: 'C:\Temp\sw\'
-  with_items: '{{ software_to_copy }}'
-  register: software_copy
+tasks:
+  - name: Ensure software directory exists (if copying)
+    ansible.windows.win_file:
+      path: C:\SoftwareInstallers
+      state: directory
+    when: software_source == 'local' # Only run if copying from local control node
 
-- name: Install Application from msi with quiet properties
-  ansible.windows.win_package:
-    path: 'C:\Temp\sw\{{ software_to_install }}'
-    state: present
-    arguments:
-      - quiet
-      - noreboot
-  with_items: '{{ software_to_install }}'
-  register: software_install
+  - name: Copy MSI installers to target (if copying from local control node)
+    ansible.windows.win_copy:
+      src: "{{ item.src_path }}"        # Path to the MSI on the Ansible control node
+      dest: "C:\\SoftwareInstallers\\{{ item.name }}.msi" # Destination path on the Windows host
+    loop: "{{ software_to_install }}"
+    when: software_source == 'local'
+
+  - name: Install MSI packages
+    ansible.windows.win_package:
+      path: "{{ item.install_path }}"  # Path to the MSI on the Windows target or network share
+      state: present
+      arguments: "{{ item.arguments | default('') }}" # Optional arguments for the MSI installer
+      log_path: "C:\\Windows\\Temp\\{{ item.name }}_install.log" # Optional: Log file for MSI
+    loop: "{{ software_to_install }}"
+    # Use `loop_control` for better logging when looping over complex items
+    loop_control:
+      label: "{{ item.name }}"

@@ -1,5 +1,4 @@
 ---
-tasks:
   - name: Ensure software directory exists (if copying)
     ansible.windows.win_file:
       path: C:\SoftwareInstallers

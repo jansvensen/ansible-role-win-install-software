@@ -2,7 +2,7 @@
 - name: Copy installation files to folder
   ansible.windows.win_copy:
     src: './files/software/{{ item }}'
-    dest: 'C:\Temp\Software'
+    dest: 'C:\Temp\Software\'
   with_items: '{{ software_to_copy }}'
   register: software_copy
 

@@ -3,6 +3,15 @@
   ansible.windows.win_copy:
     src: '/files/software/{{ item }}'
     dest: 'C:\Temp\Software'
-  with_items: '{{ software_to_install }}'
+  with_items: '{{ software_to_copy }}'
   register: software_copy
 
+- name: Install Application from msi with quiet properties
+  ansible.windows.win_package:
+    path: 'C:\Temp\Software\{{ software_to_install }}'
+    state: present
+    arguments:
+      - quiet
+      - noreboot
+  with_items: '{{ software_to_install }}'
+  register: software_install
